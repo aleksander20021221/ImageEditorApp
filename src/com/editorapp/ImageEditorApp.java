@@ -1,22 +1,23 @@
 package com.editorapp;
 import com.editorapp.src.sample.FilterGaussian;
-import com.editorapp.src.sample.GaussianBlur;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 public class ImageEditorApp extends Application{
@@ -30,13 +31,15 @@ public class ImageEditorApp extends Application{
             new Filter("Green", c -> Color.color(c.getRed(),0.5,c.getBlue())),
             new Filter("Blue", c -> Color.color(c.getRed(),c.getGreen(),0.5))
     );
-private double valueOf (Color c){
-    return c.getRed()+c.getGreen()+c.getBlue();
-}
+    private double valueOf (Color c){
+        return c.getRed()+c.getGreen()+c.getBlue();
+    }
 
     @Override
     public void start(Stage stage) throws Exception {
         stage.setScene(new Scene(createContent()));
+        stage.setTitle("Image filtering");
+
         stage.show();
     }
 
@@ -44,38 +47,56 @@ private double valueOf (Color c){
     private Parent createContent() {
         BorderPane root = new BorderPane();
         root.setPrefSize(800,600);
-        //String filePath = "src/com/editorapp/BEAR.jpg";
-        Image image = new Image("src/com/editorapp/BEAR.jpg");
-        ImageView view1 = new ImageView(image);
-        view1.setFitHeight(400);
-        view1.setFitWidth(400);
-        ImageView view2 = new ImageView();
-        view2.setFitHeight(400);
-        view2.setFitWidth(400);
+        root.setBackground(new Background(new BackgroundFill(Color.rgb(193,250,255),
+                new CornerRadii(0), Insets.EMPTY)));
+
+
+        String filePathBear = "src/com/editorapp/BEAR.jpg";
+        String filePathMount = "src/com/editorapp/MOUNTAINS.jpg";
+        Image image = new Image(filePathMount);
+        ImageView view1 = new ImageView(image);   view1.setFitHeight(400);  view1.setFitWidth(400);
+        ImageView view2 = new ImageView();  view2.setFitHeight(400); view2.setFitWidth(400);
+
 
         MenuBar bar = new MenuBar();
         Menu menu= new Menu("Filter");
 
+
+        bar.setBackground(new Background(new BackgroundFill(Color.rgb(124,181,255),
+                new CornerRadii(0), Insets.EMPTY)));
+
+        //Color filters
         filters.forEach(filter ->{
             MenuItem item = new MenuItem(filter.name);
             item.setOnAction(actionEvent -> view2.setImage(filter.apply(view1.getImage())));
             menu.getItems().add(item);
+            
         } );
-
+        //Gaussian
         {
             MenuItem item = new MenuItem("Gaussian Blur");
             item.setOnAction(actionEvent -> {
-                FilterGaussian filterGaussian = new FilterGaussian(3, image);
-                view2.setImage(filterGaussian.getBluredImg(image));
-                view2.setFitHeight(400+(int) FilterGaussian.getBlurRadius()/2+1);
-                view2.setFitWidth(400+(int) FilterGaussian.getBlurRadius()/2+1);
+                FilterGaussian filterGaussian = new FilterGaussian(6, image);
+                Image img= null;
+                long m= System.currentTimeMillis();
+                try {
+                    img = filterGaussian.ffffff(image);
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+                System.out.println((double) (System.currentTimeMillis() - m));
+
+                view2.setImage(img);
+                view2.setFitHeight(400);
+                view2.setFitWidth(400);
             });
             menu.getItems().add(item);
         }
+        //MiddleBlur
         {
-            MenuItem item = new MenuItem("Blurring");
+            MenuItem item = new MenuItem("Blur");
             item.setOnAction(actionEvent -> {
-                view2.setImage(Blur.apply(view1.getImage(), (byte) 3));
+                view2.setImage(Blur.apply(view1.getImage(), (byte) 2));
             });
             menu.getItems().add(item);
         }
@@ -83,7 +104,9 @@ private double valueOf (Color c){
         bar.getMenus().add(menu);
         root.setTop(bar);
         root.setCenter(new HBox(view1,view2));
+
         return root;
+
     }
 
     private static class Filter implements Function<Image, Image> {
