@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 public class ImageEditorApp extends Application{
@@ -103,7 +103,13 @@ public class ImageEditorApp extends Application{
         {
             MenuItem item = new MenuItem("Blur");
             item.setOnAction(actionEvent -> {
-                view2.setImage(Blur.apply(view1.getImage(), (byte) 1));
+                try {
+                    view2.setImage(Blur.apply(view1.getImage(), (byte) 1));
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             });
             menu.getItems().add(item);
         }
@@ -177,7 +183,7 @@ public class ImageEditorApp extends Application{
                 }
             }
         }
-        public static Image apply(Image source, byte radius) {
+        public static Image apply(Image source, byte radius) throws ExecutionException, InterruptedException {
             int w = (int) source.getWidth();
             int h = (int) source.getHeight();
             WritableImage image = new WritableImage(w,h);
@@ -187,12 +193,23 @@ public class ImageEditorApp extends Application{
                     image.getPixelWriter().setColor(x,y,c1);
                 }
             }
-            for (int y = radius; y <(h-radius) ; y++) {
-                for (int x = radius; x <(w-radius) ; x++) {
-                    square(image,x,y,radius);
+
+
+            ThreadPoolExecutor executor= new ThreadPoolExecutor(8,15,3L,
+                    TimeUnit.MILLISECONDS,new LinkedBlockingDeque<>(515));
+            executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+
+            Future<WritableImage> future=executor.submit(() -> {
+                for (int y = radius; y <(h-radius) ; y++) {
+                    for (int x = radius; x <(w-radius) ; x++) {
+                        square(image,x,y,radius);
+                    }
                 }
-            }
-            return image;
+                return image;
+            });
+            return future.get();
+//            return image;
         }
     }
 
