@@ -122,87 +122,87 @@ public class FilterGaussian implements Runnable{
         }
 
         //потоки созданные вручную
-        Thread wholeThread = new Thread(()->{
-
-        Thread firstTread = new Thread(() -> {
-            painting(bi,0, (int) ((width - 2 * blurRadius) / 4),
-                    0,(int)(height-2 * blurRadius)/2 );
-        });
-        firstTread.start();
-
-        Thread secondThread = new Thread(()->{
-            painting(bi,(int) ((width - 2 * blurRadius) / 4),(int) ((width - 2 * blurRadius) / 2),
-                    0,(int)(height-2 * blurRadius)/2);
-        });
-        secondThread.start();
-
-        Thread thirdThread = new Thread(()->{
-            painting(bi,(int) ((width - 2 * blurRadius) / 2),(int) ((width - 2 * blurRadius) / 4)*3,
-                    0,(int)(height-2 * blurRadius)/2);
-        });
-        thirdThread.start();
-
-        Thread forthThread = new Thread(()->{
-            painting(bi,(int) ((width - 2 * blurRadius) / 4)*3,(int) (width - 2 * blurRadius),
-                    0,(int)(height-2 * blurRadius)/2);
-        });
-        forthThread.start();
-
-            Thread firstTread1 = new Thread(() -> {
-                painting(bi,0, (int) ((width - 2 * blurRadius) / 4),
-                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius) );
-            });
-            firstTread1.start();
-
-            Thread secondThread1 = new Thread(()->{
-                painting(bi,(int) ((width - 2 * blurRadius) / 4),(int) ((width - 2 * blurRadius) / 2),
-                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius));
-            });
-            secondThread1.start();
-
-            Thread thirdThread1 = new Thread(()->{
-                painting(bi,(int) ((width - 2 * blurRadius) / 2),(int) ((width - 2 * blurRadius) / 4)*3,
-                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius));
-            });
-            thirdThread1.start();
-
-            Thread forthThread1 = new Thread(()->{
-                painting(bi,(int) ((width - 2 * blurRadius) / 4)*3,(int) (width - 2 * blurRadius),
-                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius));
-            });
-            forthThread1.start();
-
-
-            try {
-                firstTread.join();
-                secondThread.join();
-                thirdThread.join();
-                forthThread.join();
-                firstTread1.join();
-                secondThread1.join();
-                thirdThread1.join();
-                forthThread1.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-        wholeThread.start();
-        wholeThread.join();
+//        Thread wholeThread = new Thread(()->{
+//
+//        Thread firstTread = new Thread(() -> {
+//            painting(bi,0, (int) ((width - 2 * blurRadius) / 4),
+//                    0,(int)(height-2 * blurRadius)/2 );
+//        });
+//        firstTread.start();
+//
+//        Thread secondThread = new Thread(()->{
+//            painting(bi,(int) ((width - 2 * blurRadius) / 4),(int) ((width - 2 * blurRadius) / 2),
+//                    0,(int)(height-2 * blurRadius)/2);
+//        });
+//        secondThread.start();
+//
+//        Thread thirdThread = new Thread(()->{
+//            painting(bi,(int) ((width - 2 * blurRadius) / 2),(int) ((width - 2 * blurRadius) / 4)*3,
+//                    0,(int)(height-2 * blurRadius)/2);
+//        });
+//        thirdThread.start();
+//
+//        Thread forthThread = new Thread(()->{
+//            painting(bi,(int) ((width - 2 * blurRadius) / 4)*3,(int) (width - 2 * blurRadius),
+//                    0,(int)(height-2 * blurRadius)/2);
+//        });
+//        forthThread.start();
+//
+//            Thread firstTread1 = new Thread(() -> {
+//                painting(bi,0, (int) ((width - 2 * blurRadius) / 4),
+//                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius) );
+//            });
+//            firstTread1.start();
+//
+//            Thread secondThread1 = new Thread(()->{
+//                painting(bi,(int) ((width - 2 * blurRadius) / 4),(int) ((width - 2 * blurRadius) / 2),
+//                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius));
+//            });
+//            secondThread1.start();
+//
+//            Thread thirdThread1 = new Thread(()->{
+//                painting(bi,(int) ((width - 2 * blurRadius) / 2),(int) ((width - 2 * blurRadius) / 4)*3,
+//                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius));
+//            });
+//            thirdThread1.start();
+//
+//            Thread forthThread1 = new Thread(()->{
+//                painting(bi,(int) ((width - 2 * blurRadius) / 4)*3,(int) (width - 2 * blurRadius),
+//                        (int)(height-2 * blurRadius)/2,(int) (height-2 * blurRadius));
+//            });
+//            forthThread1.start();
+//
+//
+//            try {
+//                firstTread.join();
+//                secondThread.join();
+//                thirdThread.join();
+//                forthThread.join();
+//                firstTread1.join();
+//                secondThread1.join();
+//                thirdThread1.join();
+//                forthThread1.join();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//        wholeThread.start();
+//        wholeThread.join();
 
 //THREADPOOLEXECUTOR
-//        ThreadPoolExecutor executor= new ThreadPoolExecutor(15,15,1L,
-//                TimeUnit.MILLISECONDS,new LinkedBlockingDeque<>(15));
-//        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-//
-//
-//        Future<WritableImage>future=executor.submit(() -> {
-//            painting(bi,0, (int) (width - 2 * blurRadius) ,
-//                    0,(int)(height-2 * blurRadius));
-//            return bi;
-//        });
-//        return future.get();
+        ThreadPoolExecutor executor= new ThreadPoolExecutor(15,15,1L,
+                TimeUnit.MILLISECONDS,new LinkedBlockingDeque<>(15));
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
 
-        return bi;
+
+        Future<WritableImage>future=executor.submit(() -> {
+            painting(bi,0, (int) (width - 2 * blurRadius) ,
+                    0,(int)(height-2 * blurRadius));
+            return bi;
+        });
+        return future.get();
+
+//        return bi;
     }
 
     private static void painting (WritableImage writableImage,int x1, int x2, int y1, int y2){
