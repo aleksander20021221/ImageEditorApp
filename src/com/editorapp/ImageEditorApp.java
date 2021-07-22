@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -29,12 +28,20 @@ public class ImageEditorApp extends Application{
             new Filter("Black&White",c -> valueOf(c)<1.45 ? Color.BLACK : Color.WHITE),
             new Filter("Red", c -> Color.color(0.5,c.getGreen(),c.getBlue())),
             new Filter("Green", c -> Color.color(c.getRed(),0.5,c.getBlue())),
-            new Filter("Blue", c -> Color.color(c.getRed(),c.getGreen(),0.5))
+            new Filter("Blue", c -> Color.color(c.getRed(),c.getGreen(),0.5)),
+            new Filter("Brightness",c -> Color.rgb(truncate((int)(c.getRed()*255)+Filter.getLevel()),
+                    truncate((int)(c.getGreen()*255)+Filter.getLevel()),
+                    truncate((int)(c.getBlue()*255)+Filter.getLevel())))
     );
     private double valueOf (Color c){
         return c.getRed()+c.getGreen()+c.getBlue();
     }
 
+    private static int truncate(int value) {
+        if (value > 255) value = 255;
+        if (value < 0) value = 0;
+        return value;
+    }
     @Override
     public void start(Stage stage) throws Exception {
         stage.setScene(new Scene(createContent()));
@@ -76,7 +83,7 @@ public class ImageEditorApp extends Application{
         {
             MenuItem item = new MenuItem("Gaussian Blur");
             item.setOnAction(actionEvent -> {
-                FilterGaussian filterGaussian = new FilterGaussian(6, image);
+                FilterGaussian filterGaussian = new FilterGaussian(4, image);
                 Image img= null;
                 long m= System.currentTimeMillis();
                 try {
@@ -96,7 +103,7 @@ public class ImageEditorApp extends Application{
         {
             MenuItem item = new MenuItem("Blur");
             item.setOnAction(actionEvent -> {
-                view2.setImage(Blur.apply(view1.getImage(), (byte) 2));
+                view2.setImage(Blur.apply(view1.getImage(), (byte) 1));
             });
             menu.getItems().add(item);
         }
@@ -111,12 +118,19 @@ public class ImageEditorApp extends Application{
 
     private static class Filter implements Function<Image, Image> {
 
+        private static int level= -85;
+
         private final String name;
         private final Function<Color,Color> colorMap;
         Filter(String name, Function<Color, Color>colorMap){
             this.name=name;
             this.colorMap =colorMap;
         }
+
+        public static int getLevel() {
+            return level;
+        }
+
 
         @Override
         public Image apply(Image prototype) {
