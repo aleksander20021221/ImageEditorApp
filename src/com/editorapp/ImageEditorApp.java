@@ -1,9 +1,12 @@
-package com.editorapp;
-import com.editorapp.src.sample.FilterGaussian;
+package com.app.imageeditor;
+
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -12,106 +15,97 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
 public class ImageEditorApp extends Application{
-
-    private List<Filter> filters = Arrays.asList(
-            new Filter("Original",c -> c ),
-            new Filter("Invert", Color::invert),
-            new Filter("GreyScale", Color::grayscale),
-            new Filter("Black&White",c -> valueOf(c)<1.45 ? Color.BLACK : Color.WHITE),
-            new Filter("Red", c -> Color.color(0.5,c.getGreen(),c.getBlue())),
-            new Filter("Green", c -> Color.color(c.getRed(),0.5,c.getBlue())),
-            new Filter("Blue", c -> Color.color(c.getRed(),c.getGreen(),0.5)),
-            new Filter("Brightness",c -> Color.rgb(truncate((int)(c.getRed()*255)+Filter.getLevel()),
-                    truncate((int)(c.getGreen()*255)+Filter.getLevel()),
-                    truncate((int)(c.getBlue()*255)+Filter.getLevel())))
-    );
-    private double valueOf (Color c){
-        return c.getRed()+c.getGreen()+c.getBlue();
-    }
-
-    private static int truncate(int value) {
-        if (value > 255) value = 255;
-        if (value < 0) value = 0;
-        return value;
-    }
     @Override
-    public void start(Stage stage) throws Exception {
-        stage.setScene(new Scene(createContent()));
-        stage.setTitle("Image filtering");
+    public void start(Stage stage) {
 
-        stage.show();
+        Stage stage1 = new Stage();
+        stage1.setTitle("File Chooser Sample");
+
+        final FileChooser fileChooser = new FileChooser();
+
+        final Button openButton = new Button("Choose Background Image");
+        final StackPane stack = new StackPane();
+
+        EventHandler<ActionEvent> event = e -> {
+            File file = fileChooser.showOpenDialog(stage1);
+            stage.setScene(new Scene(createContent(file)));
+            stage.setTitle("Image filtering");
+            stage.show();
+        };
+        openButton.setOnAction(event);
+
+        stack.getChildren().add(openButton);
+        stage1.setScene(new Scene(stack, 300, 300));
+        stage1.show();
+
     }
-
-
-    private Parent createContent() {
+    private Parent createContent(File file) {
         BorderPane root = new BorderPane();
         root.setPrefSize(800,600);
         root.setBackground(new Background(new BackgroundFill(Color.rgb(193,250,255),
                 new CornerRadii(0), Insets.EMPTY)));
 
+        //String filePathBear = "src/main/java/BEAR.jpg";
+        Image image = new Image(file.toURI().toString());
 
-        String filePathBear = "src/com/editorapp/BEAR.jpg";
-        String filePathMount = "src/com/editorapp/MOUNTAINS.jpg";
-        Image image = new Image(filePathMount);
         ImageView view1 = new ImageView(image);   view1.setFitHeight(400);  view1.setFitWidth(400);
         ImageView view2 = new ImageView();  view2.setFitHeight(400); view2.setFitWidth(400);
 
-
         MenuBar bar = new MenuBar();
         Menu menu= new Menu("Filter");
-
-
         bar.setBackground(new Background(new BackgroundFill(Color.rgb(124,181,255),
                 new CornerRadii(0), Insets.EMPTY)));
 
-        //Color filters
-        filters.forEach(filter ->{
-            MenuItem item = new MenuItem(filter.name);
-            item.setOnAction(actionEvent -> view2.setImage(filter.apply(view1.getImage())));
-            menu.getItems().add(item);
-            
-        } );
-        //Gaussian
         {
-            MenuItem item = new MenuItem("Gaussian Blur");
-            item.setOnAction(actionEvent -> {
-                FilterGaussian filterGaussian = new FilterGaussian(4, image);
-                Image img= null;
-                long m= System.currentTimeMillis();
-                try {
-                    img = filterGaussian.ffffff(image);
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                }
-                System.out.println((double) (System.currentTimeMillis() - m));
+            //Color filters
+            filters.forEach(filter -> {
+                MenuItem item = new MenuItem(filter.name);
+                item.setOnAction(actionEvent -> view2.setImage(filter.apply(view1.getImage())));
+                menu.getItems().add(item);
 
-                view2.setImage(img);
-                view2.setFitHeight(400);
-                view2.setFitWidth(400);
             });
-            menu.getItems().add(item);
-        }
-        //MiddleBlur
-        {
-            MenuItem item = new MenuItem("Blur");
-            item.setOnAction(actionEvent -> {
-                try {
-                    view2.setImage(Blur.apply(view1.getImage(), (byte) 1));
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            });
-            menu.getItems().add(item);
+            //Gaussian
+            {
+                MenuItem item = new MenuItem("Gaussian Blur");
+                item.setOnAction(actionEvent -> {
+                    FilterGaussian filterGaussian = new FilterGaussian(4, image);
+                    Image img = null;
+                    long m = System.currentTimeMillis();
+                    try {
+                        img = FilterGaussian.ffffff(image);
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println((double) (System.currentTimeMillis() - m));
+
+                    view2.setImage(img);
+                    view2.setFitHeight(400);
+                    view2.setFitWidth(400);
+                });
+                menu.getItems().add(item);
+            }
+            //MiddleBlur
+            {
+                MenuItem item = new MenuItem("Blur");
+                item.setOnAction(actionEvent -> {
+                    try {
+                        view2.setImage(Blur.apply(view1.getImage(), (byte) 1));
+                    } catch (ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+                menu.getItems().add(item);
+            }
         }
 
         bar.getMenus().add(menu);
@@ -121,10 +115,20 @@ public class ImageEditorApp extends Application{
         return root;
 
     }
+    private final List<Filter> filters = Arrays.asList(
+            new Filter("Original", c -> c),
+            new Filter("Invert", Color::invert),
+            new Filter("GreyScale", Color::grayscale),
+            new Filter("Black&White", c -> valueOf(c) < 1.45 ? Color.BLACK : Color.WHITE),
+            new Filter("Red", c -> Color.color(0.5, c.getGreen(), c.getBlue())),
+            new Filter("Green", c -> Color.color(c.getRed(), 0.5, c.getBlue())),
+            new Filter("Blue", c -> Color.color(c.getRed(), c.getGreen(), 0.5)),
+            new Filter("Brightness", c -> Color.rgb(truncate((int) (c.getRed() * 255) + Filter.getLevel()),
+                    truncate((int) (c.getGreen() * 255) + Filter.getLevel()),
+                    truncate((int) (c.getBlue() * 255) + Filter.getLevel())))
+    );
 
     private static class Filter implements Function<Image, Image> {
-
-        private static int level= -85;
 
         private final String name;
         private final Function<Color,Color> colorMap;
@@ -134,7 +138,7 @@ public class ImageEditorApp extends Application{
         }
 
         public static int getLevel() {
-            return level;
+            return -85;
         }
 
 
@@ -215,5 +219,15 @@ public class ImageEditorApp extends Application{
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private double valueOf (Color c){
+        return c.getRed()+c.getGreen()+c.getBlue();
+    }
+
+    private static int truncate(int value) {
+        if (value > 255) value = 255;
+        if (value < 0) value = 0;
+        return value;
     }
 }
